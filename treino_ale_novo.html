@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Treino do Alê</title>
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <!-- Tone.js para feedback sonoro -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.7.77/Tone.min.js"></script>
+    <style>
+        /* --- ESTILOS EMBUTIDOS (SUBSTITUI O TAILWIND CSS) --- */
+        :root {
+            --cor-fundo: #111827;
+            --cor-fundo-secundaria: #1F2937;
+            --cor-fundo-terciaria: #374151;
+            --cor-texto-principal: #F9FAFB;
+            --cor-texto-secundario: #D1D5DB;
+            --cor-destaque: #34D399;
+            --cor-destaque-hover: #10B981;
+            --cor-borda: #4B5563;
+        }
+        *, ::before, ::after { box-sizing: border-box; border-width: 0; border-style: solid; border-color: currentColor; }
+        html { line-height: 1.5; -webkit-text-size-adjust: 100%; -moz-tab-size: 4; tab-size: 4; font-family: 'Inter', sans-serif; }
+        body { margin: 0; line-height: inherit; background-color: var(--cor-fundo); color: var(--cor-texto-principal); -webkit-tap-highlight-color: transparent; }
+        h1, h2, h3, p { margin: 0; padding: 0; }
+        h1 { font-size: 1.875rem; line-height: 2.25rem; font-weight: 700; }
+        h2 { font-size: 1.5rem; line-height: 2rem; font-weight: 700; }
+        h3 { font-size: 1.125rem; line-height: 1.75rem; font-weight: 600; }
+        button, input { font-family: inherit; font-size: 100%; font-weight: inherit; line-height: inherit; color: inherit; margin: 0; padding: 0; }
+        button { background-color: transparent; background-image: none; cursor: pointer; }
+        textarea { resize: vertical; }
+        input[type="number"]::-webkit-outer-spin-button, input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+        input[type="number"] { -moz-appearance: textfield; }
+
+        .container { width: 100%; max-width: 36rem; margin-left: auto; margin-right: auto; padding: 1rem; padding-bottom: 6rem; min-height: 100vh; }
+        .text-center { text-align: center; }
+        .my-6 { margin-top: 1.5rem; margin-bottom: 1.5rem; }
+        .mb-6 { margin-bottom: 1.5rem; }
+        .mb-4 { margin-bottom: 1rem; }
+        .mb-2 { margin-bottom: 0.5rem; }
+        .mb-1 { margin-bottom: 0.25rem; }
+        .mt-1 { margin-top: 0.25rem; }
+        .text-emerald-400 { color: var(--cor-destaque); }
+        .text-gray-400 { color: var(--cor-texto-secundario); font-size: 0.875rem; }
+        .font-bold { font-weight: 700; }
+        .font-semibold { font-weight: 600; }
+        
+        #workout-tabs { display: flex; justify-content: space-around; background-color: var(--cor-fundo-secundaria); padding: 0.5rem; border-radius: 0.75rem; box-shadow: 0 4px 6px -1px rgba(0,0,0,.1), 0 2px 4px -2px rgba(0,0,0,.1); }
+        .tab-button { width: 100%; padding: 0.5rem 1rem; border-radius: 0.5rem; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .tab-button.active { background-color: var(--cor-destaque-hover); color: white; box-shadow: 0 10px 15px -3px rgba(0,0,0,.1), 0 4px 6px -4px rgba(0,0,0,.1); }
+
+        #progress-bar-container { padding-left: 0.25rem; padding-right: 0.25rem; }
+        #progress-bar-bg { width: 100%; background-color: var(--cor-fundo-terciaria); border-radius: 9999px; height: 0.625rem; }
+        #progress-bar-fill { background-color: var(--cor-destaque); height: 0.625rem; border-radius: 9999px; transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        
+        .flex { display: flex; }
+        .justify-between { justify-content: space-between; }
+        .items-center { align-items: center; }
+        .space-x-2 > :not([hidden]) ~ :not([hidden]) { margin-right: 0; margin-left: 0.5rem; }
+        .space-y-3 > :not([hidden]) ~ :not([hidden]) { margin-bottom: 0; margin-top: 0.75rem; }
+
+        .exercise-card { background-color: var(--cor-fundo-secundaria); border-radius: 0.75rem; box-shadow: 0 1px 3px 0 rgba(0,0,0,.1), 0 1px 2px -1px rgba(0,0,0,.1); overflow: hidden; margin-bottom: 1rem; border-left: 4px solid var(--cor-borda); transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .exercise-card.done { opacity: 0.6; border-left-color: var(--cor-destaque-hover); }
+        .exercise-card.done h3 { text-decoration: line-through; }
+        .aspect-video { position: relative; width: 100%; padding-top: 56.25%; }
+        .aspect-video iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
+        .p-4 { padding: 1rem; }
+        
+        .set-checkbox { height: 1.5rem; width: 1.5rem; border-radius: 0.375rem; border-color: var(--cor-borda); background-color: var(--cor-fundo-terciaria); color: var(--cor-destaque); cursor: pointer; appearance: none; -webkit-appearance: none; display: grid; place-content: center; }
+        .set-checkbox::before { content: ""; width: 0.75em; height: 0.75em; transform: scale(0); transition: 120ms transform ease-in-out; box-shadow: inset 1em 1em var(--cor-destaque-hover); transform-origin: bottom left; clip-path: polygon(14% 44%, 0 65%, 50% 100%, 100% 16%, 80% 0%, 43% 62%);}
+        .set-checkbox:checked::before { transform: scale(1); }
+        
+        .input-field { width: 100%; background-color: var(--cor-fundo-terciaria); border-radius: 0.375rem; padding: 0.5rem; text-align: center; color: white; border: 2px solid transparent; }
+        .input-field:focus { border-color: var(--cor-destaque); outline: none; }
+        .notes-area { width: 100%; background-color: var(--cor-fundo-terciaria); border-radius: 0.375rem; padding: 0.5rem; color: white; border: 2px solid transparent; display: none; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .notes-area:focus { border-color: var(--cor-destaque); outline: none; }
+        .notes-area.visible { display: block; }
+        
+        .fixed { position: fixed; }
+        .inset-0 { top: 0; right: 0; bottom: 0; left: 0; }
+        .z-50 { z-index: 50; }
+        .hidden { display: none; }
+        .transition-all { transition-property: all; transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1); transition-duration: 300ms; }
+        
+        #completion-modal .content { background-color: var(--cor-fundo-secundaria); border-radius: 1rem; padding: 2rem; text-align: center; box-shadow: 0 25px 50px -12px rgba(0,0,0,.25); transform: scale(0.95); }
+        #completion-modal.visible .content { transform: scale(1); }
+        
+        #timer-toast { bottom: 1rem; right: 1rem; left: 1rem; background-color: var(--cor-fundo-secundaria); padding: 1rem; border-radius: 0.75rem; box-shadow: 0 25px 50px -12px rgba(0,0,0,.25); z-index: 40; opacity: 0; transform: translateY(5rem); }
+        #timer-toast.visible { opacity: 1; transform: translateY(0); }
+        
+        @media (min-width: 640px) {
+            #timer-toast { left: auto; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <header class="text-center my-6">
+            <h1>Treino do Alê 💪</h1>
+            <p class="text-gray-400 mt-1">Selecione o treino, registre sua carga e marque as séries.</p>
+        </header>
+
+        <nav id="workout-tabs">
+            <button data-workout="A" class="tab-button">Treino A</button>
+            <button data-workout="B" class="tab-button">Treino B</button>
+            <button data-workout="C" class="tab-button">Treino C</button>
+        </nav>
+        
+        <div id="progress-bar-container" class="my-6">
+             <div class="flex justify-between mb-1">
+                <span id="progress-label" class="text-emerald-400 font-semibold">Progresso do Treino</span>
+                <span id="progress-text" class="text-emerald-400 font-semibold">0%</span>
+            </div>
+            <div id="progress-bar-bg">
+                <div id="progress-bar-fill"></div>
+            </div>
+        </div>
+
+        <main id="workout-container"></main>
+    </div>
+
+    <div id="completion-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-75 transition-all hidden">
+        <div class="content">
+            <h2 class="text-emerald-400 mb-4">Parabéns, Alê!</h2>
+            <p class="text-gray-400 mb-6">Você completou o Treino <span id="completed-workout-name" class="font-bold"></span>! Missão cumprida!</p>
+            <button id="close-modal-btn" style="background-color: var(--cor-destaque-hover); color: white; font-weight: 700; padding: 0.5rem 1.5rem; border-radius: 0.5rem;">Fechar</button>
+        </div>
+    </div>
+    
+    <div id="timer-toast" class="transition-all">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="font-semibold text-emerald-400">Tempo de Descanso</p>
+                <p id="timer-display" style="font-size: 2.25rem; line-height: 2.5rem; font-weight: 700; color: white;">02:00</p>
+            </div>
+            <button id="dismiss-timer-btn" class="text-gray-400">
+                <svg xmlns="http://www.w3.org/2000/svg" style="height: 2rem; width: 2rem;" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+            </button>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            
+            const createSets = (count) => Array.from({ length: count }, () => ({ done: false, weight: '', reps: '' }));
+
+            let workouts = {
+                'A': {
+                    title: 'Treino A: Peitoral, Ombros e Tríceps',
+                    exercises: [
+                        { name: 'Supino Reto com Barra', mediaUrl: 'https://www.youtube.com/embed/UHa9U-O09_U', sets: createSets(4), notes: '4x 8-12 reps (60-90s descanso)' },
+                        { name: 'Supino Inclinado Máquina/Smith', mediaUrl: 'https://www.youtube.com/embed/KK5ZSj22h7s', sets: createSets(3), notes: '3x 10-12 reps (60s descanso)' },
+                        { name: 'Voador (Peck Deck)', mediaUrl: 'https://www.youtube.com/embed/MENdoLpyj7c', sets: createSets(3), notes: '3x 12-15 reps (60s descanso)' },
+                        { name: 'Desenvolvimento com Halteres', mediaUrl: 'https://www.youtube.com/embed/5I7ogOjvdnc', sets: createSets(4), notes: '4x 10-12 reps (60-90s descanso)' },
+                        { name: 'Elevação Lateral na Polia', mediaUrl: 'https://www.youtube.com/embed/uRKJFkclq5U', sets: createSets(3), notes: '3x 12-15 reps (45-60s descanso)' },
+                        { name: 'Tríceps Corda na Polia', mediaUrl: 'https://www.youtube.com/embed/M88Bt4MMpkI', sets: createSets(3), notes: '3x 10-12 reps (60s descanso)' },
+                        { name: 'Tríceps Testa com Halter', mediaUrl: 'https://www.youtube.com/embed/wKh2hvkdlQI', sets: createSets(3), notes: '3x 10-12 reps (60s descanso)' },
+                    ]
+                },
+                'B': {
+                    title: 'Treino B: Coxas e Abdômen',
+                    exercises: [
+                        { name: 'Agachamento Hack (Máquina)', mediaUrl: 'https://www.youtube.com/embed/ZsAu3REJnb0', sets: createSets(4), notes: '4x 10-12 reps (90s descanso)' },
+                        { name: 'Agachamento Afundo com Halteres', mediaUrl: 'https://www.youtube.com/embed/rltJymhFtHg', sets: createSets(3), notes: '3x 10-12 reps/perna (60s descanso)' },
+                        { name: 'Cadeira Extensora', mediaUrl: 'https://www.youtube.com/embed/PzIfB9MiiX8', sets: createSets(3), notes: '3x 12-15 reps (60s descanso)' },
+                        { name: 'Stiff (Terra Romeno)', mediaUrl: 'https://www.youtube.com/embed/ZPsUi8zwCQ8', sets: createSets(4), notes: '4x 10-12 reps (90s descanso)' },
+                        { name: 'Cadeira Flexora', mediaUrl: 'https://www.youtube.com/embed/T46yKiz8laY', sets: createSets(3), notes: '3x 12-15 reps (60s descanso)' },
+                        { name: 'Abdominal na Máquina', mediaUrl: 'https://www.youtube.com/embed/uAe1Uj3Y05k', sets: createSets(3), notes: '3x 15-20 reps (60s descanso)' },
+                        { name: 'Elevação de Pernas em Paralelas', mediaUrl: 'https://www.youtube.com/embed/In0EzoOAILw', sets: createSets(3), notes: '3x 12-15 reps (60s descanso)' },
+                        { name: 'Torção Russa (Russian Twist)', mediaUrl: 'https://www.youtube.com/embed/lvClTf5jQaA', sets: createSets(3), notes: '3x 15-20 reps (60s descanso)' },
+                    ]
+                },
+                'C': {
+                    title: 'Treino C: Costas e Bíceps',
+                    exercises: [
+                        { name: 'Puxada Frontal', mediaUrl: 'https://www.youtube.com/embed/_2MfZAj98tk', sets: createSets(4), notes: '4x 10-12 reps (60-90s descanso)' },
+                        { name: 'Remada Curvada com Barra', mediaUrl: 'https://www.youtube.com/embed/e53vSzibkO0', sets: createSets(4), notes: '4x 8-10 reps (90s descanso)' },
+                        { name: 'Remada Unilateral (Serrote)', mediaUrl: 'https://www.youtube.com/embed/L2FuijYFTvE', sets: createSets(3), notes: '3x 10-12 reps/braço (60s descanso)' },
+                        { name: 'Rosca Direta com Barra W', mediaUrl: 'https://www.youtube.com/embed/dc330H9yN3Y', sets: createSets(4), notes: '4x 10-12 reps (60s descanso)' },
+                        { name: 'Rosca Alternada Inclinada', mediaUrl: 'https://www.youtube.com/embed/a1NPJFmCJ5o', sets: createSets(3), notes: '3x 10-12 reps/braço (60s descanso)' },
+                        { name: 'Rosca Martelo na Polia', mediaUrl: 'https://www.youtube.com/embed/EdsGRhdAye0', sets: createSets(3), notes: '3x 12-15 reps (45-60s descanso)' },
+                    ]
+                }
+            };
+
+            const workoutContainer = document.getElementById('workout-container');
+            const tabs = document.querySelectorAll('.tab-button');
+            const modal = document.getElementById('completion-modal');
+            const closeModalBtn = document.getElementById('close-modal-btn');
+            const completedWorkoutNameSpan = document.getElementById('completed-workout-name');
+            const timerToast = document.getElementById('timer-toast');
+            const timerDisplay = document.getElementById('timer-display');
+            const dismissTimerBtn = document.getElementById('dismiss-timer-btn');
+            const progressBarFill = document.getElementById('progress-bar-fill');
+            const progressText = document.getElementById('progress-text');
+            
+            let currentWorkoutId = 'A';
+            let timerInterval = null;
+            let isAudioReady = false;
+            let synth = null; 
+
+            const saveState = () => localStorage.setItem('workoutTrackerData_v5', JSON.stringify(workouts));
+
+            const loadState = () => {
+                const savedData = localStorage.getItem('workoutTrackerData_v5');
+                if (savedData) {
+                    workouts = JSON.parse(savedData);
+                }
+            };
+            
+            const startAudioContext = async () => {
+                if (typeof Tone === 'undefined') {
+                    console.error("Tone.js não foi carregado.");
+                    return;
+                }
+                if (!isAudioReady && Tone.context.state !== 'running') {
+                    await Tone.start();
+                    isAudioReady = true;
+                    if (!synth) {
+                        synth = new Tone.Synth().toDestination();
+                    }
+                }
+            };
+
+            const formatTime = (seconds) => {
+                const minutes = Math.floor(seconds / 60);
+                const remainingSeconds = seconds % 60;
+                return `${String(minutes).padStart(2, '0')}:${String(remainingSeconds).padStart(2, '0')}`;
+            };
+            
+            const triggerFeedback = (type) => {
+                if (navigator.vibrate) {
+                    if (type === 'complete') navigator.vibrate([200, 100, 200]);
+                    else navigator.vibrate(50);
+                }
+                if (type === 'complete' && isAudioReady && synth) {
+                    synth.triggerAttackRelease("C5", "8n", Tone.now());
+                }
+            };
+
+            const startTimer = (duration) => {
+                clearInterval(timerInterval);
+                let timeLeft = duration;
+                timerDisplay.textContent = formatTime(timeLeft);
+                timerToast.classList.remove('hidden');
+                setTimeout(() => timerToast.classList.add('visible'), 10);
+
+                timerInterval = setInterval(() => {
+                    timeLeft--;
+                    timerDisplay.textContent = formatTime(timeLeft);
+                    if (timeLeft <= 0) {
+                        clearInterval(timerInterval);
+                        dismissTimer();
+                        triggerFeedback('complete');
+                    }
+                }, 1000);
+            };
+            
+            const getRestTimeFromNote = (note) => {
+                const match = note.match(/(\d+)\s*s/);
+                if (match) {
+                    return parseInt(match[1], 10);
+                }
+                 const rangeMatch = note.match(/(\d+)-(\d+)\s*s/);
+                if (rangeMatch) {
+                    return parseInt(rangeMatch[2], 10); 
+                }
+                return 60; // Padrão de 60 segundos
+            };
+
+            const dismissTimer = () => {
+                clearInterval(timerInterval);
+                timerToast.classList.remove('visible');
+                setTimeout(() => timerToast.classList.add('hidden'), 300);
+            };
+
+            const updateProgressBar = () => {
+                 const workout = workouts[currentWorkoutId];
+                 if (!workout) return;
+                 const totalSets = workout.exercises.reduce((sum, ex) => sum + ex.sets.length, 0);
+                 const completedSets = workout.exercises.reduce((count, ex) => count + ex.sets.filter(s => s.done).length, 0);
+                 const percentage = totalSets > 0 ? (completedSets / totalSets) * 100 : 0;
+                 progressBarFill.style.width = `${percentage}%`;
+                 progressText.textContent = `${Math.round(percentage)}%`;
+            };
+
+            const renderWorkout = () => {
+                const workout = workouts[currentWorkoutId];
+                workoutContainer.innerHTML = ''; 
+
+                workout.exercises.forEach((exercise, exIndex) => {
+                    const allSetsDone = exercise.sets.every(s => s.done);
+                    const card = document.createElement('div');
+                    card.className = `exercise-card ${allSetsDone ? 'done' : ''}`;
+                    
+                    let mediaElement = exercise.mediaUrl ? `<div class="aspect-video"><iframe src="${exercise.mediaUrl}" title="${exercise.name}" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe></div>` : '';
+
+                    let setsHtml = exercise.sets.map((set, setIndex) => `
+                        <div class="flex items-center space-x-2 w-full">
+                            <input type="checkbox" id="set-${exIndex}-${setIndex}" data-ex-index="${exIndex}" data-set-index="${setIndex}" class="set-checkbox" ${set.done ? 'checked' : ''}>
+                            <label for="set-${exIndex}-${setIndex}" style="color: var(--cor-texto-secundario); font-weight: 600;">${setIndex + 1}ª</label>
+                            <input type="number" data-ex-index="${exIndex}" data-set-index="${setIndex}" data-type="weight" value="${set.weight}" placeholder="kg" class="input-field">
+                            <input type="number" data-ex-index="${exIndex}" data-set-index="${setIndex}" data-type="reps" value="${set.reps}" placeholder="reps" class="input-field">
+                        </div>
+                    `).join('');
+
+                    card.innerHTML = `
+                        ${mediaElement}
+                        <div class="p-4">
+                            <div class="flex justify-between items-center mb-2">
+                                <h3>${exercise.name}</h3>
+                                <button class="toggle-notes-btn" data-ex-index="${exIndex}" style="padding: 0.25rem; color: var(--cor-texto-secundario);">
+                                    <svg xmlns="http://www.w3.org/2000/svg" style="height: 1.5rem; width: 1.5rem;" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
+                                </button>
+                            </div>
+                            <p class="text-gray-400 mb-4">${exercise.notes}</p>
+                            <div class="space-y-3 mb-4">${setsHtml}</div>
+                            <textarea data-ex-index="${exIndex}" class="notes-area" placeholder="Suas anotações aqui..."></textarea>
+                        </div>
+                    `;
+                    workoutContainer.appendChild(card);
+                });
+                updateProgressBar();
+                updateActiveTab();
+            };
+            
+            const updateActiveTab = () => {
+                tabs.forEach(tab => {
+                    tab.classList.toggle('active', tab.dataset.workout === currentWorkoutId);
+                });
+            };
+
+            const checkWorkoutCompletion = () => {
+                const currentExercises = workouts[currentWorkoutId].exercises;
+                const allDone = currentExercises.every(ex => ex.sets.every(s => s.done));
+
+                if (allDone) {
+                    completedWorkoutNameSpan.textContent = currentWorkoutId;
+                    modal.classList.remove('hidden');
+                    setTimeout(() => modal.classList.add('visible'), 10);
+                    
+                    currentExercises.forEach(ex => {
+                        ex.sets.forEach(s => s.done = false);
+                    });
+                    saveState();
+                }
+            };
+
+            tabs.forEach(tab => tab.addEventListener('click', () => {
+                currentWorkoutId = tab.dataset.workout;
+                renderWorkout();
+            }));
+
+            workoutContainer.addEventListener('input', (e) => {
+                const target = e.target;
+                const exIndex = parseInt(target.dataset.exIndex);
+                if (isNaN(exIndex)) return;
+                const exercise = workouts[currentWorkoutId].exercises[exIndex];
+                if(target.matches('input[type="number"]')) {
+                    const setIndex = parseInt(target.dataset.setIndex);
+                    const type = target.dataset.type;
+                    exercise.sets[setIndex][type] = target.value;
+                } else if(target.matches('.notes-area')) {
+                    exercise.customNotes = target.value; // Salva anotações personalizadas separadamente
+                }
+                saveState();
+            });
+
+            workoutContainer.addEventListener('change', (e) => {
+                if (e.target.classList.contains('set-checkbox')) {
+                    startAudioContext();
+                    const exIndex = parseInt(e.target.dataset.exIndex);
+                    const setIndex = parseInt(e.target.dataset.setIndex);
+                    const isChecked = e.target.checked;
+                    const exercise = workouts[currentWorkoutId].exercises[exIndex];
+                    exercise.sets[setIndex].done = isChecked;
+                    
+                    const allSetsDone = exercise.sets.every(s => s.done);
+                    e.target.closest('.exercise-card').classList.toggle('done', allSetsDone);
+                    
+                    if (isChecked) triggerFeedback('tap');
+                    if (isChecked && !allSetsDone) {
+                        const restTime = getRestTimeFromNote(exercise.notes);
+                        startTimer(restTime);
+                    }
+                    saveState();
+                    updateProgressBar();
+                    checkWorkoutCompletion();
+                }
+            });
+
+            workoutContainer.addEventListener('click', (e) => {
+                const button = e.target.closest('.toggle-notes-btn');
+                if (button) {
+                    const exIndex = button.dataset.exIndex;
+                    const notesArea = workoutContainer.querySelector(`.notes-area[data-ex-index='${exIndex}']`);
+                    notesArea.classList.toggle('visible');
+                }
+            });
+
+            dismissTimerBtn.addEventListener('click', dismissTimer);
+
+            closeModalBtn.addEventListener('click', () => {
+                modal.classList.remove('visible');
+                setTimeout(() => {
+                    modal.classList.add('hidden');
+                    renderWorkout();
+                }, 300);
+            });
+
+            loadState();
+            renderWorkout();
+        });
+    </script>
+</body>
+</html>
+
